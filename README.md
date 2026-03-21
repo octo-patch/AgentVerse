@@ -277,6 +277,17 @@ export AZURE_OPENAI_API_KEY="your_api_key_here"
 export AZURE_OPENAI_API_BASE="your_api_base_here"
 ```
 
+If you want to use [MiniMax](https://www.minimax.io/) models, export your MiniMax API key:
+```bash
+export MINIMAX_API_KEY="your_api_key_here"
+```
+Then set `llm_type` to `minimax` (or a specific model name like `MiniMax-M2.7`) in your task config file:
+```yaml
+llm_type: minimax
+model: MiniMax-M2.7
+```
+Available MiniMax models: `MiniMax-M2.7`, `MiniMax-M2.5`, `MiniMax-M2.5-highspeed` (204K context).
+
 ## Simulation
 
 ### Framework Required Modules 
