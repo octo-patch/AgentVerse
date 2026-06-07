@@ -31,34 +31,34 @@ MINIMAX_BASE_URL = os.environ.get(
 
 # MiniMax model token limits
 MINIMAX_TOKEN_LIMITS = {
-    "MiniMax-M2.7": 1000000,
-    "MiniMax-M2.5": 1000000,
-    "MiniMax-M2.5-highspeed": 204800,
+    "MiniMax-M3": 512000,
+    "MiniMax-M2.7": 192000,
+    "MiniMax-M2.7-highspeed": 192000,
 }
 
 # MiniMax model pricing (per 1K tokens, USD)
 MINIMAX_INPUT_COST = {
+    "MiniMax-M3": 0.0006,
     "MiniMax-M2.7": 0.0008,
-    "MiniMax-M2.5": 0.0005,
-    "MiniMax-M2.5-highspeed": 0.0003,
+    "MiniMax-M2.7-highspeed": 0.0008,
 }
 
 MINIMAX_OUTPUT_COST = {
+    "MiniMax-M3": 0.0024,
     "MiniMax-M2.7": 0.0032,
-    "MiniMax-M2.5": 0.002,
-    "MiniMax-M2.5-highspeed": 0.0012,
+    "MiniMax-M2.7-highspeed": 0.0032,
 }
 
 
 def _strip_think_tags(content: str) -> str:
-    """Strip <think>...</think> tags from MiniMax M2.5+ responses."""
+    """Strip <think>...</think> tags from MiniMax model responses."""
     if content and "<think>" in content:
         return re.sub(r"<think>.*?</think>\s*", "", content, flags=re.DOTALL).strip()
     return content
 
 
 class MiniMaxChatArgs(BaseModelArgs):
-    model: str = Field(default="MiniMax-M2.7")
+    model: str = Field(default="MiniMax-M3")
     max_tokens: int = Field(default=2048)
     temperature: float = Field(default=0.7)
     top_p: float = Field(default=1.0)
@@ -67,9 +67,9 @@ class MiniMaxChatArgs(BaseModelArgs):
 
 
 @llm_registry.register("minimax")
+@llm_registry.register("MiniMax-M3")
 @llm_registry.register("MiniMax-M2.7")
-@llm_registry.register("MiniMax-M2.5")
-@llm_registry.register("MiniMax-M2.5-highspeed")
+@llm_registry.register("MiniMax-M2.7-highspeed")
 class MiniMaxChat(BaseChatModel):
     args: MiniMaxChatArgs = Field(default_factory=MiniMaxChatArgs)
     client_args: Optional[Dict] = Field(
@@ -96,7 +96,7 @@ class MiniMaxChat(BaseChatModel):
 
     @classmethod
     def send_token_limit(cls, model: str) -> int:
-        return MINIMAX_TOKEN_LIMITS.get(model, 204800)
+        return MINIMAX_TOKEN_LIMITS.get(model, 192000)
 
     def generate_response(
         self,

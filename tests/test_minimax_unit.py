@@ -54,7 +54,7 @@ class TestMiniMaxChatArgs:
 
     def test_default_model(self):
         args = MiniMaxChatArgs()
-        assert args.model == "MiniMax-M2.7"
+        assert args.model == "MiniMax-M3"
 
     def test_default_temperature(self):
         args = MiniMaxChatArgs()
@@ -65,8 +65,8 @@ class TestMiniMaxChatArgs:
         assert args.max_tokens == 2048
 
     def test_custom_model(self):
-        args = MiniMaxChatArgs(model="MiniMax-M2.5")
-        assert args.model == "MiniMax-M2.5"
+        args = MiniMaxChatArgs(model="MiniMax-M2.7")
+        assert args.model == "MiniMax-M2.7"
 
     def test_custom_temperature(self):
         args = MiniMaxChatArgs(temperature=0.5)
@@ -80,7 +80,7 @@ class TestMiniMaxChatInit:
     def test_default_init(self):
         with patch("agentverse.llms.minimax.MINIMAX_API_KEY", "test-key"):
             chat = MiniMaxChat()
-            assert chat.args.model == "MiniMax-M2.7"
+            assert chat.args.model == "MiniMax-M3"
             assert chat.args.temperature == 0.7
             assert chat.total_prompt_tokens == 0
             assert chat.total_completion_tokens == 0
@@ -88,8 +88,8 @@ class TestMiniMaxChatInit:
     @patch.dict(os.environ, {"MINIMAX_API_KEY": "test-key"}, clear=False)
     def test_custom_model_init(self):
         with patch("agentverse.llms.minimax.MINIMAX_API_KEY", "test-key"):
-            chat = MiniMaxChat(model="MiniMax-M2.5-highspeed")
-            assert chat.args.model == "MiniMax-M2.5-highspeed"
+            chat = MiniMaxChat(model="MiniMax-M2.7-highspeed")
+            assert chat.args.model == "MiniMax-M2.7-highspeed"
 
     @patch.dict(os.environ, {"MINIMAX_API_KEY": "test-key"}, clear=False)
     def test_temperature_clamping_high(self):
@@ -113,17 +113,17 @@ class TestMiniMaxChatInit:
 class TestMiniMaxChatTokenLimits:
     """Tests for send_token_limit."""
 
+    def test_m3_limit(self):
+        assert MiniMaxChat.send_token_limit("MiniMax-M3") == 512000
+
     def test_m27_limit(self):
-        assert MiniMaxChat.send_token_limit("MiniMax-M2.7") == 1000000
+        assert MiniMaxChat.send_token_limit("MiniMax-M2.7") == 192000
 
-    def test_m25_limit(self):
-        assert MiniMaxChat.send_token_limit("MiniMax-M2.5") == 1000000
-
-    def test_m25_highspeed_limit(self):
-        assert MiniMaxChat.send_token_limit("MiniMax-M2.5-highspeed") == 204800
+    def test_m27_highspeed_limit(self):
+        assert MiniMaxChat.send_token_limit("MiniMax-M2.7-highspeed") == 192000
 
     def test_unknown_model_default(self):
-        assert MiniMaxChat.send_token_limit("unknown-model") == 204800
+        assert MiniMaxChat.send_token_limit("unknown-model") == 192000
 
 
 class TestMiniMaxChatMessages:
@@ -183,12 +183,12 @@ class TestMiniMaxChatSpend:
     @patch.dict(os.environ, {"MINIMAX_API_KEY": "test-key"}, clear=False)
     def test_spend_calculation(self):
         with patch("agentverse.llms.minimax.MINIMAX_API_KEY", "test-key"):
-            chat = MiniMaxChat(model="MiniMax-M2.7")
+            chat = MiniMaxChat(model="MiniMax-M3")
             chat.total_prompt_tokens = 1000
             chat.total_completion_tokens = 500
             expected = (
-                1000 * MINIMAX_INPUT_COST["MiniMax-M2.7"] / 1000.0
-                + 500 * MINIMAX_OUTPUT_COST["MiniMax-M2.7"] / 1000.0
+                1000 * MINIMAX_INPUT_COST["MiniMax-M3"] / 1000.0
+                + 500 * MINIMAX_OUTPUT_COST["MiniMax-M3"] / 1000.0
             )
             assert chat.get_spend() == expected
 
@@ -371,20 +371,20 @@ class TestMiniMaxRegistry:
 
         assert "minimax" in llm_registry.entries
 
+    def test_m3_registered(self):
+        from agentverse.llms import llm_registry
+
+        assert "MiniMax-M3" in llm_registry.entries
+
     def test_m27_registered(self):
         from agentverse.llms import llm_registry
 
         assert "MiniMax-M2.7" in llm_registry.entries
 
-    def test_m25_registered(self):
+    def test_m27_highspeed_registered(self):
         from agentverse.llms import llm_registry
 
-        assert "MiniMax-M2.5" in llm_registry.entries
-
-    def test_m25_highspeed_registered(self):
-        from agentverse.llms import llm_registry
-
-        assert "MiniMax-M2.5-highspeed" in llm_registry.entries
+        assert "MiniMax-M2.7-highspeed" in llm_registry.entries
 
     @patch("agentverse.llms.minimax.MINIMAX_API_KEY", "test-key")
     def test_registry_build(self):
@@ -392,13 +392,13 @@ class TestMiniMaxRegistry:
 
         chat = llm_registry.build("minimax")
         assert isinstance(chat, MiniMaxChat)
-        assert chat.args.model == "MiniMax-M2.7"
+        assert chat.args.model == "MiniMax-M3"
 
     @patch("agentverse.llms.minimax.MINIMAX_API_KEY", "test-key")
     def test_registry_build_specific_model(self):
         from agentverse.llms import llm_registry
 
-        chat = llm_registry.build("MiniMax-M2.5-highspeed")
+        chat = llm_registry.build("MiniMax-M2.7-highspeed")
         assert isinstance(chat, MiniMaxChat)
 
 
@@ -406,19 +406,19 @@ class TestMiniMaxConstants:
     """Tests for module-level constants."""
 
     def test_token_limits_all_models(self):
+        assert "MiniMax-M3" in MINIMAX_TOKEN_LIMITS
         assert "MiniMax-M2.7" in MINIMAX_TOKEN_LIMITS
-        assert "MiniMax-M2.5" in MINIMAX_TOKEN_LIMITS
-        assert "MiniMax-M2.5-highspeed" in MINIMAX_TOKEN_LIMITS
+        assert "MiniMax-M2.7-highspeed" in MINIMAX_TOKEN_LIMITS
 
     def test_input_cost_all_models(self):
+        assert "MiniMax-M3" in MINIMAX_INPUT_COST
         assert "MiniMax-M2.7" in MINIMAX_INPUT_COST
-        assert "MiniMax-M2.5" in MINIMAX_INPUT_COST
-        assert "MiniMax-M2.5-highspeed" in MINIMAX_INPUT_COST
+        assert "MiniMax-M2.7-highspeed" in MINIMAX_INPUT_COST
 
     def test_output_cost_all_models(self):
+        assert "MiniMax-M3" in MINIMAX_OUTPUT_COST
         assert "MiniMax-M2.7" in MINIMAX_OUTPUT_COST
-        assert "MiniMax-M2.5" in MINIMAX_OUTPUT_COST
-        assert "MiniMax-M2.5-highspeed" in MINIMAX_OUTPUT_COST
+        assert "MiniMax-M2.7-highspeed" in MINIMAX_OUTPUT_COST
 
     def test_costs_are_positive(self):
         for model, cost in MINIMAX_INPUT_COST.items():

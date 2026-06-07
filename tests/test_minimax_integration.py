@@ -21,7 +21,7 @@ def minimax_chat():
     """Create a MiniMaxChat instance with real credentials."""
     from agentverse.llms.minimax import MiniMaxChat
 
-    return MiniMaxChat(model="MiniMax-M2.5-highspeed", temperature=0.1, max_tokens=128)
+    return MiniMaxChat(model="MiniMax-M3", temperature=0.1, max_tokens=128)
 
 
 @pytest.mark.integration

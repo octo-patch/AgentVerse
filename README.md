@@ -281,12 +281,12 @@ If you want to use [MiniMax](https://www.minimax.io/) models, export your MiniMa
 ```bash
 export MINIMAX_API_KEY="your_api_key_here"
 ```
-Then set `llm_type` to `minimax` (or a specific model name like `MiniMax-M2.7`) in your task config file:
+Then set `llm_type` to `minimax` (or a specific model name like `MiniMax-M3`) in your task config file:
 ```yaml
 llm_type: minimax
-model: MiniMax-M2.7
+model: MiniMax-M3
 ```
-Available MiniMax models: `MiniMax-M2.7`, `MiniMax-M2.5`, `MiniMax-M2.5-highspeed` (204K context).
+Available MiniMax models: `MiniMax-M3` (default, 512K context, up to 128K output, image input), `MiniMax-M2.7`, `MiniMax-M2.7-highspeed`.
 
 ## Simulation
 
